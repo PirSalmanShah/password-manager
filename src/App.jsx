@@ -15,73 +15,46 @@ function App() {
   }
 
   useEffect(() => {
-    const fetchData = async () => {
-      let response = await fetch("http://localhost:3000/")
-      if (!response.ok) {
-        throw new Error("Fetching the data failed")
-      }
-      let listdata = await response.json();
-      if (listdata) {
-        setFormList(listdata)
-      }
-    }
-    fetchData();
-  }, [])
+    const oldList = localStorage.getItem("formList");
+    if (oldList) {
 
-  const deleteData = async (e) => {
+      setFormList(JSON.parse(oldList))
+    }
+  }, [])
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = !firstRender.current
+      return
+    }
+    localStorage.setItem("formList", JSON.stringify(formList))
+  }, [formList])
+
+  const deleteData = (e) => {
     const deletepass = formList.filter(items => items.id !== e);
     setFormList(deletepass);
-    let response = await fetch("http://localhost:3000/", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id: e }),
-      // …
-    });
-    if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-    let b = await response.text();
-    console.log(b)
   }
-  const editData = async (e) => {
+  const editData = (e) => {
     const editForm = formList.find(items => items.id == e)
     setValue("name", editForm.name)
     setValue("url", editForm.url)
     setValue("password", editForm.password)
     const delForm = formList.filter(items => items.id !== e)
-    
-    let response = await fetch("http://localhost:3000/", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id: e }),
-      // …
-    });
     setFormList(delForm)
   }
   const copyToClipBoard = (e) => {
-
-
-    navigator.clipboard.writeText(e).then(() => {
-      toast.success("Copied!!", {
-        hideProgressBar: true,
-        icon: false, style: {
-          background: "#e610e6",   // Purple
-          color: "white",
-          progressbar: "false"
-        }
-      })
-    }).catch(() => {
-      toast.error("Copy failed", {
-        hideProgressBar: true,
-        icon: false, style: {
-          background: "#e610e6",   // Purple
-          color: "white",
-          progressbar: "false"
-        }
-      })
-    })
+    
+    
+    navigator.clipboard.writeText(e).then(() =>{ toast.success("Copied!!",{hideProgressBar: true,
+  icon: false,style: {
+    background: "#e610e6",   // Purple
+    color: "white",
+    progressbar:"false"
+  }}) }).error(() => { toast.error("Copy failed",{hideProgressBar: true,
+  icon: false,style: {
+    background: "#e610e6",   // Purple
+    color: "white",
+    progressbar:"false"
+  }}) })
   }
 
 
@@ -95,21 +68,9 @@ function App() {
   } = useForm()
 
 
-  const onSubmitted = async (e) => {
-    const uID = uuidv4()
-    setFormList([...formList, { id: uID, name: e.name, url: e.url, password: e.password }])
+  const onSubmitted = (e) => {
+    setFormList([...formList, { id: uuidv4(), name: e.name, url: e.url, password: e.password }])
     reset()
-    let a = await fetch("http://localhost:3000/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id: uID, name: e.name, url: e.url, password: e.password }),
-      // …
-    });
-    if (!a.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-    let b = await a.text()
-    console.log(b)
   }
 
 
@@ -160,21 +121,21 @@ function App() {
                     <td className='text-left px-1 border-purple-300 rounded-2xl  border-2 overflow-x-auto whitespace-nowrap scrollbar-hide text-purple-900 relative'>
                       {item.url}
                       <img src="copy.svg" alt="copy-icon" className='absolute  right-3 bottom-0.5' width={20} onClick={() => { copyToClipBoard(item.url) }} />
-                      <ToastContainer />
+                      <ToastContainer/>
                     </td>
 
 
                     <td className='text-left px-1 border-purple-300 rounded-2xl  border-2 overflow-x-auto whitespace-nowrap scrollbar-hide text-purple-900 relative'>
                       {item.name}
                       <img src="copy.svg" alt="copy-icon" className='absolute  right-3 bottom-0.5' width={20} onClick={() => { copyToClipBoard(item.name) }} />
-                      <ToastContainer />
+                      <ToastContainer/>
                     </td>
 
 
                     <td className='text-left px-1 border-purple-300 rounded-2xl  border-2 overflow-x-auto whitespace-nowrap scrollbar-hide text-purple-900 relative'>
                       {"*".repeat(item.password.length)}
                       <img src="copy.svg" alt="copy-icon" className='absolute  right-3 bottom-0.5' width={20} onClick={() => { copyToClipBoard(item.password) }} />
-                      <ToastContainer />
+                      <ToastContainer/>
                     </td>
 
                     <td className='text-left px-1 border-purple-300 rounded-2xl  border-2 flex gap-1 justify-around flex-col items-center sm:flex-row'>
